@@ -77,7 +77,7 @@ const createBallsSet = (
 export const newGame = (parameters: GameParameters): GameState => {
   const counter = { counter: 0 };
   const initialSetX = Math.floor(parameters.width / 2);
-  let inNextStep = false;
+  let busy = false;
   const game: GameState = $state({
     parameters,
     table: createTable(parameters.width * parameters.height),
@@ -93,14 +93,14 @@ export const newGame = (parameters: GameParameters): GameState => {
       game.pause = !game.pause;
     },
     rotateSet: () => {
-      if (inNextStep || game.gameOver || game.pause) {
+      if (busy || game.gameOver || game.pause) {
         return;
       }
       game.currentSet.unshift(game.currentSet.pop()!);
       setSetAt(game.currentSetX, game.currentSetY, game.currentSet);
     },
-    moveHorizontally: (delta: 1 | -1) => {
-      if (inNextStep || game.gameOver || game.pause) {
+    moveHorizontally: async (delta: 1 | -1) => {
+      if (busy || game.gameOver || game.pause) {
         return;
       }
       const newCurrentSetX = game.currentSetX + delta;
@@ -113,9 +113,10 @@ export const newGame = (parameters: GameParameters): GameState => {
         game.currentSetX = newCurrentSetX;
         setSetAt(newCurrentSetX, game.currentSetY, game.currentSet);
       }
+      await checkCurrentSetEnd();
     },
     moveDown: async () => {
-      if (inNextStep || game.gameOver || game.pause) {
+      if (busy || game.gameOver || game.pause) {
         return;
       }
       const currentSet = game.currentSet;
@@ -226,13 +227,10 @@ export const newGame = (parameters: GameParameters): GameState => {
     } while (ballsToRemove.size > 0);
   };
 
-  const nextStep = async () => {
-    if (inNextStep || game.gameOver) {
-      return;
-    }
-    inNextStep = true;
+  const checkCurrentSetEnd = async () => {
+    busy = true;
     try {
-      const nextPositionY = game.currentSetY + game.currentSet.length;
+      let nextPositionY = game.currentSetY + game.currentSet.length;
       if (
         nextPositionY >= parameters.height ||
         game.table[game.currentSetX + parameters.width * nextPositionY]
@@ -248,15 +246,21 @@ export const newGame = (parameters: GameParameters): GameState => {
         game.currentSetX = initialSetX;
         game.currentSetY = 0;
         game.nextSet = createBallsSet(parameters, counter);
-      } else {
-        game.table[game.currentSetX + parameters.width * game.currentSetY] =
-          null;
-        game.currentSetY++;
+        setSetAt(game.currentSetX, game.currentSetY, game.currentSet);
       }
-      setSetAt(game.currentSetX, game.currentSetY, game.currentSet);
     } finally {
-      inNextStep = false;
+      busy = false;
     }
+  };
+
+  const nextStep = async () => {
+    if (busy || game.gameOver) {
+      return;
+    }
+    game.table[game.currentSetX + parameters.width * game.currentSetY] = null;
+    game.currentSetY++;
+    setSetAt(game.currentSetX, game.currentSetY, game.currentSet);
+    await checkCurrentSetEnd();
   };
   game.balls.push(...game.currentSet);
   setSetAt(game.currentSetX, 0, game.currentSet);
