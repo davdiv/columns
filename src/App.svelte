@@ -26,3 +26,7 @@
     }}
   ></Parameters>
 {/if}
+
+<p>
+  Le <a href="https://github.com/davdiv/columns">code source</a> de ce jeu est disponible.
+</p>
