@@ -264,12 +264,12 @@ export const newGame = (parameters: GameParameters): GameState => {
     if (game.pause) {
       return;
     }
+    let active = true;
     const callNextStep = async () => {
+      timeout = null;
       await nextStep();
-      if (!game.gameOver) {
+      if (!game.gameOver && active) {
         timeout = setTimeout(callNextStep, 1000);
-      } else {
-        timeout = null;
       }
     };
     let timeout: null | ReturnType<typeof setTimeout> = setTimeout(
@@ -277,6 +277,7 @@ export const newGame = (parameters: GameParameters): GameState => {
       1000
     );
     return () => {
+      active = false;
       if (timeout) {
         clearTimeout(timeout);
       }
