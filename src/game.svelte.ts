@@ -40,6 +40,10 @@ export const commonColors = [
   "yellow",
   "darkorange",
   "black",
+  "darkviolet",
+  "aquamarine",
+  "chartreuse",
+  "#f942f5",
 ];
 
 export const defaultParameters: GameParameters = {
