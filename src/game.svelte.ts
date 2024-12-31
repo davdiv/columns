@@ -251,6 +251,7 @@ export const newGame = (parameters: GameParameters): GameState => {
         game.currentSetY = 0;
         game.nextSet = createBallsSet(parameters, counter);
         setSetAt(game.currentSetX, game.currentSetY, game.currentSet);
+        await checkCurrentSetEnd();
       }
     } finally {
       busy = false;
