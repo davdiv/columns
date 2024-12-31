@@ -2,6 +2,7 @@ export interface GameParameters {
   balls: number;
   width: number;
   height: number;
+  stepDuration: number;
   colors: string[];
 }
 
@@ -50,6 +51,7 @@ export const defaultParameters: GameParameters = {
   balls: 3,
   width: 7,
   height: 10,
+  stepDuration: 1000,
   colors: commonColors.slice(0, 6),
 };
 
@@ -185,10 +187,8 @@ export const newGame = (parameters: GameParameters): GameState => {
   };
 
   const findAndRemoveAlignments = async () => {
-    const ballsToRemove = new Set<Ball>();
-    do {
-      await new Promise((resolve) => setTimeout(resolve, 200));
-      ballsToRemove.clear();
+    while (true) {
+      const ballsToRemove = new Set<Ball>();
       // spot items
       for (let x = 0; x < parameters.width; x++) {
         for (let y = 0; y < parameters.height; y++) {
@@ -201,6 +201,10 @@ export const newGame = (parameters: GameParameters): GameState => {
           }
         }
       }
+      if (ballsToRemove.size === 0) {
+        return;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 200));
       const columns = new Set<number>();
       // remove them
       for (const ball of ballsToRemove) {
@@ -228,7 +232,7 @@ export const newGame = (parameters: GameParameters): GameState => {
           game.table[x + y * parameters.width] = null;
         }
       }
-    } while (ballsToRemove.size > 0);
+    }
   };
 
   const checkCurrentSetEnd = async () => {
@@ -278,12 +282,12 @@ export const newGame = (parameters: GameParameters): GameState => {
       timeout = null;
       await nextStep();
       if (!game.gameOver && active) {
-        timeout = setTimeout(callNextStep, 1000);
+        timeout = setTimeout(callNextStep, parameters.stepDuration);
       }
     };
     let timeout: null | ReturnType<typeof setTimeout> = setTimeout(
       callNextStep,
-      1000
+      parameters.stepDuration
     );
     return () => {
       active = false;

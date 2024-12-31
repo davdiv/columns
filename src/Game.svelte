@@ -1,6 +1,12 @@
 <script lang="ts">
   import { fade, scale } from "svelte/transition";
   import { newGame, type GameParameters, type GameState } from "./game.svelte";
+  import LeftArrow from "./icons/LeftArrow.svelte";
+  import RightArrow from "./icons/RightArrow.svelte";
+  import Rotate from "./icons/Rotate.svelte";
+  import DownArrow from "./icons/DownArrow.svelte";
+  import Pause from "./icons/Pause.svelte";
+  import Exit from "./icons/Exit.svelte";
 
   let {
     parameters,
@@ -40,9 +46,9 @@
 
 <svelte:window onkeydown={keydown} />
 
-<div>
+<div class="flex flex-wrap gap-3">
   <div
-    class="board"
+    class="board flex-none"
     style:width={`${(ballSize + space) * game.parameters.width + space}px`}
     style:height={`${(ballSize + space) * game.parameters.height + space}px`}
   >
@@ -66,8 +72,46 @@
       <div in:fade class="state-text">Pause !</div>
     {/if}
   </div>
-  <div class="info-panel">
+  <div class="flex flex-col">
     <div>Points : {game.points}</div>
+    <div class="join">
+      <button
+        class="btn join-item"
+        onclick={() => {
+          game.moveHorizontally(-1);
+        }}><LeftArrow></LeftArrow></button
+      >
+      <button
+        class="btn join-item"
+        onclick={() => {
+          game.moveHorizontally(1);
+        }}><RightArrow></RightArrow></button
+      >
+      <button
+        class="btn join-item"
+        onclick={() => {
+          game.rotateSet();
+        }}><Rotate></Rotate></button
+      >
+      <button
+        class="btn join-item"
+        onclick={() => {
+          game.moveDown();
+        }}><DownArrow></DownArrow></button
+      >
+      <button
+        class="btn join-item"
+        onclick={() => {
+          game.togglePause();
+        }}><Pause></Pause></button
+      >
+      <button
+        class="btn join-item"
+        onclick={() => {
+          onNewGame();
+        }}><Exit></Exit></button
+      >
+    </div>
     <div>Prochain :</div>
     <div
       class="next-balls"
@@ -122,6 +166,7 @@
     z-index: 2;
   }
   .board {
+    box-sizing: content-box;
     display: inline-block;
     border: 10px solid gray;
     background: linear-gradient(to bottom, #fff, #88f);
@@ -148,8 +193,5 @@
     display: inline-block;
     margin-left: 20px;
     position: relative;
-  }
-  .info-panel {
-    display: inline-block;
   }
 </style>
